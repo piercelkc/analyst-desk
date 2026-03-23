@@ -802,9 +802,13 @@ function getMarketData() {
       { sym: 'RUT', name: 'Russell 2000', val: rng(2050, 25), chg: pct(-0.2, 1.0) },
     ],
     fearGreed: {
-      score: rngInt(44, 15),
-      prev7d: rngInt(38, 12),
-      avg1yr: 52,
+      const fgRes = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
+      const fgData = await fgRes.json();
+      const score = Math.round(fgData.fear_and_greed.score);
+
+      // score: rngInt(44, 15),
+      // prev7d: rngInt(38, 12),
+      // avg1yr: 52,
     },
     vix: {
       val: rng(18.4, 3),
