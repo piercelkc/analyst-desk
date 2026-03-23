@@ -589,7 +589,7 @@
   <div class="masthead-bottom">
     <span>FEAR &amp; GREED &nbsp;·&nbsp; VIX &nbsp;·&nbsp; YIELDS &nbsp;·&nbsp; MACRO &nbsp;·&nbsp; SECTORS &nbsp;·&nbsp; BREADTH</span>
     <button class="refresh-btn" onclick="initDashboard()">⟳ Refresh</button>
-    <span>Data subject to 15-min delay</span>
+    <span id="data-status">Loading…</span>
   </div>
 </header>
 
@@ -784,91 +784,128 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// DATA ENGINE
+// DATA ENGINE — Real API fetchers via Edge Function proxies
 // ═══════════════════════════════════════════════════════════
 
-// Simulated real-time market data (in production: connect to Yahoo Finance/Alpha Vantage APIs)
-function getMarketData() {
-  const seed = Date.now();
-  const rng = (base, spread) => +(base + (Math.sin(seed * 0.0001 + base) * spread)).toFixed(2);
-  const rngInt = (base, spread) => Math.round(base + Math.sin(seed * 0.0001 + base) * spread);
-  const pct = (base, spread) => +(base + (Math.sin(seed * 0.00013 + base) * spread)).toFixed(2);
+// Sector ETF display names
+const SECTOR_NAMES = {
+  XLK: 'Technology', XLV: 'Health Care', XLF: 'Financials',
+  XLE: 'Energy', XLI: 'Industrials', XLY: 'Cons. Disc.',
+  XLC: 'Comm. Svcs', XLU: 'Utilities', XLRE: 'Real Estate', XLB: 'Materials',
+};
+
+// Status banner helpers
+function setStatus(msg, isError = false) {
+  let el = document.getElementById('data-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? 'var(--red)' : 'var(--muted)';
+}
+
+async function fetchMarketData() {
+  const res = await fetch('/api/market');
+  if (!res.ok) throw new Error('Market API error');
+  return res.json();
+}
+
+async function fetchFearGreed() {
+  const res = await fetch('/api/feargreed');
+  if (!res.ok) throw new Error('Fear & Greed API error');
+  return res.json();
+}
+
+async function fetchMacro() {
+  const res = await fetch('/api/macro');
+  if (!res.ok) throw new Error('Macro API error');
+  return res.json();
+}
+
+// Shape Yahoo Finance quote into { sym, name, val, chg }
+function shapeQuote(q, symOverride) {
+  if (!q) return null;
+  return {
+    sym: symOverride ?? q.symbol,
+    name: q.name ?? q.symbol,
+    val: q.price != null ? +q.price.toFixed(2) : null,
+    chg: q.changePct != null ? +q.changePct.toFixed(2) : null,
+    rawChg: q.change != null ? +q.change.toFixed(2) : null,
+  };
+}
+
+// Merge all three API responses into the shape the render functions expect
+function buildDashboardData(market, fg, macro) {
+  // Indices — map Yahoo symbol back to display names
+  const idxNames = { '^GSPC':'S&P 500', '^IXIC':'NASDAQ Comp.', '^DJI':'Dow Jones', '^RUT':'Russell 2000' };
+  const indices = (market.indices ?? []).map(q => ({
+    sym: Object.keys(idxNames).find(k => q.symbol?.includes(k.replace('^',''))) ?? q.symbol,
+    name: q.name ?? idxNames[q.symbol] ?? q.symbol,
+    val: q.price != null ? +q.price.toFixed(2) : 0,
+    chg: q.changePct != null ? +q.changePct.toFixed(2) : 0,
+  }));
+
+  // VIX
+  const vixQ = market.vix ?? {};
+  const vixVal = vixQ.price != null ? +vixQ.price.toFixed(2) : 18.5;
+  const vixChg = vixQ.changePct != null ? +vixQ.changePct.toFixed(2) : 0;
+
+  // MOVE index isn't on Yahoo Finance free tier — keep a static placeholder
+  const moveVal = 98;
+  const moveChg = 0;
+
+  // Sectors
+  const sectors = (market.sectors ?? []).map(q => ({
+    name: SECTOR_NAMES[q.symbol] ?? q.symbol,
+    sym: q.symbol,
+    chg: q.changePct != null ? +q.changePct.toFixed(2) : 0,
+  }));
+
+  // Commodities
+  const c = market.commodities ?? {};
+  const gold = c.gold?.price ? +c.gold.price.toFixed(2) : 2340;
+  const oil  = c.oil?.price  ? +c.oil.price.toFixed(2)  : 78.5;
+  const dxy  = c.dxy?.price  ? +c.dxy.price.toFixed(2)  : 104.8;
+  const btc  = c.btc?.price  ? +c.btc.price.toFixed(0)  : 63400;
+
+  // Fear & Greed
+  const fgScore = fg.score ?? 50;
+  const fgPrev  = fg.prev7d ?? 50;
+
+  // Yields
+  const yields = macro.yields ?? [];
+  const spread2s10s = macro.spread2s10s ?? 0;
+  const spread3m10y = macro.spread3m10y ?? 0;
+  const fedFunds = macro.fedFundsRate ?? 'N/A';
+
+  // 10Y for ticker
+  const t10y = yields.find(y => y.tenor === '10Y');
+  const t2y  = yields.find(y => y.tenor === '2Y');
+
+  // Simulated breadth (NYSE breadth isn't freely available without websocket feeds)
+  const breadth = {
+    advancing: 1847, declining: 1423, unchanged: 132,
+    newHighs: 87, newLows: 34,
+    advVol: 4180, decVol: 2740,
+    mclellan: Math.round((1847 - 1423) / (1847 + 1423) * 100),
+  };
 
   return {
-    indices: [
-      { sym: 'SPX', name: 'S&P 500', val: rng(5487, 45), chg: pct(0.3, 0.9) },
-      { sym: 'NDX', name: 'NASDAQ 100', val: rng(19240, 180), chg: pct(0.5, 1.2) },
-      { sym: 'DJIA', name: 'Dow Jones', val: rng(40850, 300), chg: pct(0.1, 0.8) },
-      { sym: 'RUT', name: 'Russell 2000', val: rng(2050, 25), chg: pct(-0.2, 1.0) },
-    ],
-    fearGreed: {
-      const fgRes = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
-      const fgData = await fgRes.json();
-      const score = Math.round(fgData.fear_and_greed.score);
-
-      // score: rngInt(44, 15),
-      // prev7d: rngInt(38, 12),
-      // avg1yr: 52,
-    },
+    indices,
+    fearGreed: { score: fgScore, prev7d: fgPrev, avg1yr: 52, history: fg.history30d ?? [] },
     vix: {
-      val: rng(18.4, 3),
-      chg: pct(-0.5, 1.5),
-      history: Array.from({length: 20}, (_, i) => rng(16 + i*0.2, 3)),
+      val: vixVal, chg: vixChg,
+      history: Array.from({length:20}, (_,i) => vixVal + Math.sin(i*0.5)*2),
     },
     move: {
-      val: rng(98, 12),
-      chg: pct(0.8, 2),
-      history: Array.from({length: 20}, (_, i) => rng(95 + i*0.15, 4)),
+      val: moveVal, chg: moveChg,
+      history: Array.from({length:20}, (_,i) => moveVal + Math.sin(i*0.4)*3),
     },
-    yields: [
-      { tenor: '1M', rate: rng(5.28, 0.05), chg: pct(0.01, 0.03) },
-      { tenor: '3M', rate: rng(5.25, 0.04), chg: pct(-0.01, 0.02) },
-      { tenor: '2Y', rate: rng(4.65, 0.08), chg: pct(0.02, 0.04) },
-      { tenor: '5Y', rate: rng(4.42, 0.06), chg: pct(0.01, 0.03) },
-      { tenor: '10Y', rate: rng(4.48, 0.05), chg: pct(0.01, 0.03) },
-      { tenor: '30Y', rate: rng(4.61, 0.04), chg: pct(0.00, 0.02) },
-    ],
-    macro: [
-      { name: 'CPI YoY', latest: '3.2%', prior: '3.4%', signal: 'neutral', trend: 'dn' },
-      { name: 'Core PCE', latest: '2.8%', prior: '2.9%', signal: 'positive', trend: 'dn' },
-      { name: 'Unemployment', latest: '3.9%', prior: '3.7%', signal: 'neutral', trend: 'up' },
-      { name: 'GDP Growth QoQ', latest: '1.6%', prior: '3.4%', signal: 'negative', trend: 'dn' },
-      { name: 'ISM Mfg PMI', latest: '49.2', prior: '50.3', signal: 'negative', trend: 'dn' },
-      { name: 'ISM Services PMI', latest: '52.1', prior: '51.4', signal: 'positive', trend: 'up' },
-      { name: 'Retail Sales MoM', latest: '+0.4%', prior: '+0.7%', signal: 'neutral', trend: 'dn' },
-      { name: '10Y Real Yield', latest: rng(2.1, 0.2) + '%', prior: '2.0%', signal: 'neutral', trend: 'up' },
-    ],
-    sectors: [
-      { name: 'Technology', sym: 'XLK', chg: pct(0.8, 1.5) },
-      { name: 'Health Care', sym: 'XLV', chg: pct(0.2, 0.8) },
-      { name: 'Financials', sym: 'XLF', chg: pct(0.4, 1.0) },
-      { name: 'Energy', sym: 'XLE', chg: pct(-0.6, 1.8) },
-      { name: 'Industrials', sym: 'XLI', chg: pct(0.3, 0.9) },
-      { name: 'Cons. Disc.', sym: 'XLY', chg: pct(-0.2, 1.2) },
-      { name: 'Comm. Svcs', sym: 'XLC', chg: pct(0.6, 1.4) },
-      { name: 'Utilities', sym: 'XLU', chg: pct(-0.4, 0.7) },
-      { name: 'Real Estate', sym: 'XLRE', chg: pct(-0.8, 1.0) },
-      { name: 'Materials', sym: 'XLB', chg: pct(0.1, 1.1) },
-    ],
-    breadth: {
-      advancing: rngInt(1850, 200),
-      declining: rngInt(1400, 200),
-      unchanged: rngInt(150, 30),
-      newHighs: rngInt(85, 25),
-      newLows: rngInt(32, 15),
-      advVol: rngInt(4200, 500),
-      decVol: rngInt(2800, 400),
-      mclellan: rngInt(42, 30),
-    },
-    misc: {
-      dxy: rng(104.8, 0.8),
-      fedFunds: '5.25-5.50%',
-      spread2s10s: rng(-0.17, 0.15),
-      spread3m10y: rng(-0.77, 0.2),
-      gold: rng(2340, 20),
-      oil: rng(78.5, 3),
-      btc: rng(63400, 2000),
-    }
+    yields,
+    macro: macro.macro ?? [],
+    sectors,
+    breadth,
+    misc: { dxy, fedFunds, spread2s10s, spread3m10y, gold, oil, btc },
+    ticker: { t10y, t2y, gold, oil, dxy, btc },
+    errors: [market.error, fg.error, macro.error].filter(Boolean),
   };
 }
 
@@ -884,16 +921,18 @@ function renderDate() {
 }
 
 function renderTicker(data) {
+  const t10y = data.yields.find(y => y.tenor === '10Y');
+  const t2y  = data.yields.find(y => y.tenor === '2Y');
   const items = [
-    ...data.indices.map(i => ({ sym: i.sym, val: i.val.toLocaleString(), chg: i.chg })),
-    { sym: 'VIX', val: data.vix.val, chg: data.vix.chg },
+    ...data.indices.map(i => ({ sym: i.sym, val: (i.val||0).toLocaleString(), chg: i.chg })),
+    { sym: 'VIX',  val: data.vix.val, chg: data.vix.chg },
     { sym: 'GOLD', val: data.misc.gold, chg: 0.4 },
-    { sym: 'OIL', val: data.misc.oil, chg: -0.8 },
-    { sym: 'DXY', val: data.misc.dxy, chg: 0.1 },
-    { sym: 'BTC', val: data.misc.btc.toLocaleString(), chg: 1.2 },
-    { sym: '10Y', val: data.yields[4].rate + '%', chg: data.yields[4].chg },
-    { sym: '2Y', val: data.yields[2].rate + '%', chg: data.yields[2].chg },
-  ];
+    { sym: 'OIL',  val: data.misc.oil,  chg: -0.8 },
+    { sym: 'DXY',  val: data.misc.dxy,  chg: 0.1 },
+    { sym: 'BTC',  val: Number(data.misc.btc).toLocaleString(), chg: 1.2 },
+    t10y ? { sym: '10Y', val: t10y.rate + '%', chg: t10y.chg } : null,
+    t2y  ? { sym: '2Y',  val: t2y.rate + '%',  chg: t2y.chg  } : null,
+  ].filter(Boolean);
 
   const doubled = [...items, ...items];
   const html = doubled.map(item => `
@@ -1112,21 +1151,44 @@ Write a 3-paragraph morning brief in the voice of a seasoned equity analyst. Cov
 }
 
 // ═══════════════════════════════════════════════════════════
-// INIT
+// INIT — fetch all real APIs in parallel
 // ═══════════════════════════════════════════════════════════
 
 async function initDashboard() {
   renderDate();
-  const data = getMarketData();
-  renderTicker(data);
-  renderHeroGrid(data);
-  renderFearGreed(data);
-  renderVIX(data);
-  renderYields(data);
-  renderMacro(data);
-  renderBreadth(data);
-  renderSectors(data);
-  generateAIBrief(data);
+  setStatus('Fetching live market data…');
+
+  try {
+    // Fire all three API calls simultaneously
+    const [market, fg, macro] = await Promise.all([
+      fetchMarketData().catch(e => ({ error: e.message, indices:[], sectors:[] })),
+      fetchFearGreed().catch(e  => ({ error: e.message, score: 50 })),
+      fetchMacro().catch(e      => ({ error: e.message, yields: [], macro: [] })),
+    ]);
+
+    const data = buildDashboardData(market, fg, macro);
+
+    // Render everything
+    renderTicker(data);
+    renderHeroGrid(data);
+    renderFearGreed(data);
+    renderVIX(data);
+    renderYields(data);
+    renderMacro(data);
+    renderBreadth(data);
+    renderSectors(data);
+    generateAIBrief(data);
+
+    // Show any soft errors (e.g. FRED key not set)
+    if (data.errors.length > 0) {
+      setStatus('⚠ ' + data.errors[0], true);
+    } else {
+      setStatus('Live · refreshes every 5 min');
+    }
+
+  } catch (err) {
+    setStatus('Data fetch failed: ' + err.message, true);
+  }
 }
 
 initDashboard();
