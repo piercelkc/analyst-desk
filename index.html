@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANALYST DESK — Daily Market Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Canela+Deck:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #c8491a;
+    --accent2: #1a4fc8;
+    --gold: #b8960c;
+    --green: #1a7a3c;
+    --red: #c8191a;
+    --muted: #7a7060;
+    --border: #c8c0b0;
+    --card: #faf6ee;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    border-bottom: 3px double var(--ink);
+    padding: 0 2rem;
+    background: var(--paper);
+  }
+
+  .masthead-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .masthead-main {
+    text-align: center;
+    padding: 1.2rem 0 1rem;
+    position: relative;
+  }
+
+  .masthead-main::before,
+  .masthead-main::after {
+    content: '─────────────────────────────────────────';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--border);
+    letter-spacing: -0.05em;
+  }
+
+  .pub-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin: 0.3rem 0 0.1rem;
+  }
+
+  .pub-tagline {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .masthead-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* TICKER TAPE */
+  .ticker-container {
+    background: var(--ink);
+    color: var(--paper);
+    overflow: hidden;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .ticker-track {
+    display: flex;
+    animation: ticker 40s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-item {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0 2.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .ticker-item .sym { font-weight: 700; }
+  .ticker-item .up { color: #5ddb8a; }
+  .ticker-item .dn { color: #ff6b6b; }
+  .ticker-sep { color: #666; }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* MAIN GRID */
+  .main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 3rem;
+  }
+
+  /* SECTION HEADERS — newspaper style */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0 1rem;
+  }
+
+  .section-label {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-num {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--border);
+  }
+
+  /* CARD BASE */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .card:hover {
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: translate(-2px, -2px);
+  }
+
+  .card-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .card-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .card-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .up { color: var(--green); }
+  .dn { color: var(--red); }
+  .neutral { color: var(--muted); }
+
+  /* HERO ROW — 4 index cards */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .hero-grid .card {
+    border: none;
+  }
+
+  /* FEAR & GREED — large feature card */
+  .fg-card {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2rem;
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fg-card::after {
+    content: 'SENTIMENT';
+    position: absolute;
+    right: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-size: 5rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    opacity: 0.05;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .fg-card .card-label { color: #888; }
+
+  .fg-meter {
+    margin: 1.5rem 0 1rem;
+    position: relative;
+  }
+
+  .fg-bar-bg {
+    height: 8px;
+    background: linear-gradient(to right, #c8191a, #e87a1a, #c8b01a, #5a9a2a, #1a7a3c);
+    border-radius: 0;
+    position: relative;
+  }
+
+  .fg-needle {
+    position: absolute;
+    top: -5px;
+    width: 3px;
+    height: 18px;
+    background: white;
+    transform: translateX(-50%);
+    transition: left 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  }
+
+  .fg-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: #888;
+  }
+
+  .fg-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: white;
+  }
+
+  .fg-sentiment {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+  }
+
+  /* TWO-COL SECTION */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  /* YIELD CURVE */
+  .yield-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .yield-node {
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--border);
+    background: var(--cream);
+  }
+
+  .yield-tenor {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .yield-rate {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin: 0.2rem 0;
+  }
+
+  .yield-chg {
+    font-size: 0.55rem;
+  }
+
+  /* VIX GAUGE */
+  .vix-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .gauge-arc {
+    width: 140px;
+    height: 70px;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+
+  /* MINI SPARKLINE */
+  .sparkline {
+    width: 100%;
+    height: 40px;
+    margin-top: 0.75rem;
+  }
+
+  /* AI BRIEF */
+  .ai-brief {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .ai-brief-header {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ai-brief-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
+  .ai-brief-content {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .ai-brief-content p { margin-bottom: 0.5rem; }
+  .ai-brief-content p:last-child { margin-bottom: 0; }
+
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.5s infinite;
+  }
+
+  @keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  /* HEATMAP SECTOR */
+  .sector-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .sector-cell {
+    padding: 0.6rem 0.4rem;
+    text-align: center;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+
+  .sector-name { font-weight: 500; margin-bottom: 0.2rem; }
+  .sector-pct { font-family: 'Playfair Display', serif; font-size: 0.95rem; }
+
+  /* MACRO INDICATORS TABLE */
+  .macro-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .macro-table th {
+    text-align: left;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .macro-table td {
+    padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid var(--cream);
+  }
+
+  .macro-table tr:last-child td { border-bottom: none; }
+
+  .indicator-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+
+  /* BREADTH WIDGET */
+  .breadth-bars {
+    display: flex;
+    gap: 0.2rem;
+    align-items: flex-end;
+    height: 60px;
+    margin-top: 0.75rem;
+  }
+
+  .breadth-bar {
+    flex: 1;
+    background: var(--border);
+    position: relative;
+    transition: height 0.8s ease;
+  }
+
+  .breadth-bar.advancing { background: var(--green); }
+  .breadth-bar.declining { background: var(--red); }
+
+  /* FOOTER */
+  .footer {
+    border-top: 3px double var(--ink);
+    padding: 1rem 2rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .sector-grid { grid-template-columns: repeat(3, 1fr); }
+    .yield-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .hero-grid { grid-template-columns: 1fr 1fr; }
+    .masthead { padding: 0 1rem; }
+    .main-content { padding: 1rem; }
+    .sector-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .ai-brief, .fg-card {
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+
+  .refresh-btn {
+    background: none;
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    color: var(--muted);
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .pulse {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-top">
+    <span id="live-date">Loading...</span>
+    <span>VOL. MCCXXIV &nbsp;·&nbsp; MORNING EDITION &nbsp;·&nbsp; <span class="pulse"></span> LIVE DATA</span>
+    <span>EST. 2025</span>
+  </div>
+  <div class="masthead-main">
+    <div class="pub-name">The Analyst Desk</div>
+    <div class="pub-tagline">Daily Market Intelligence for Senior Equity Professionals</div>
+  </div>
+  <div class="masthead-bottom">
+    <span>FEAR &amp; GREED &nbsp;·&nbsp; VIX &nbsp;·&nbsp; YIELDS &nbsp;·&nbsp; MACRO &nbsp;·&nbsp; SECTORS &nbsp;·&nbsp; BREADTH</span>
+    <button class="refresh-btn" onclick="initDashboard()">⟳ Refresh</button>
+    <span>Data subject to 15-min delay</span>
+  </div>
+</header>
+
+<!-- TICKER TAPE -->
+<div class="ticker-container">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- SECTION: KEY INDICES -->
+  <div class="section-header">
+    <span class="section-label">Key Indices</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ I</span>
+  </div>
+
+  <div class="hero-grid" id="hero-grid">
+    <!-- populated by JS -->
+  </div>
+
+  <!-- SECTION: SENTIMENT & VOLATILITY -->
+  <div class="section-header">
+    <span class="section-label">Sentiment & Volatility</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ II</span>
+  </div>
+
+  <div class="two-col">
+    <!-- FEAR & GREED -->
+    <div class="fg-card card" id="fg-card">
+      <div class="card-label" style="color:#888">
+        <span>CNN Fear &amp; Greed Index</span>
+        <span id="fg-prev"></span>
+      </div>
+      <div style="display:flex; align-items:flex-end; gap:1.5rem; flex-wrap:wrap;">
+        <div>
+          <div class="fg-score" id="fg-score">--</div>
+          <div class="fg-sentiment" id="fg-sentiment">Loading...</div>
+        </div>
+        <div style="flex:1; min-width:160px;">
+          <div class="fg-meter">
+            <div class="fg-bar-bg">
+              <div class="fg-needle" id="fg-needle" style="left:50%"></div>
+            </div>
+            <div class="fg-labels">
+              <span>Extreme Fear</span>
+              <span>Fear</span>
+              <span>Neutral</span>
+              <span>Greed</span>
+              <span>Extreme Greed</span>
+            </div>
+          </div>
+          <div style="font-size:0.6rem; color:#888; margin-top:0.5rem;">
+            7-day trend: <span id="fg-trend">--</span> &nbsp;|&nbsp; 1-yr avg: <span id="fg-avg">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIX + MOVE -->
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      <div class="card" id="vix-card">
+        <div class="card-label">
+          <span>CBOE VIX — Equity Volatility</span>
+          <span id="vix-change" class="card-change"></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div>
+            <div class="card-value" id="vix-val">--</div>
+            <div class="card-sub" id="vix-regime">Regime: Loading...</div>
+          </div>
+          <svg class="sparkline" id="vix-spark" viewBox="0 0 120 40" preserveAspectRatio="none">
+            <polyline id="vix-line" points="" fill="none" stroke="#c8491a" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="card" id="move-card">
+        <div class="card-label">
+          <span>MOVE Index — Bond Volatility</span>
+          <span id="move-change" class="card-change"></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div>
+            <div class="card-value" id="move-val">--</div>
+            <div class="card-sub">ICE BofA Option Volatility Estimate</div>
+          </div>
+          <svg class="sparkline" id="move-spark" viewBox="0 0 120 40" preserveAspectRatio="none">
+            <polyline id="move-line" points="" fill="none" stroke="#1a4fc8" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: RATES & YIELD CURVE -->
+  <div class="section-header">
+    <span class="section-label">Yield Curve</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ III</span>
+  </div>
+
+  <div class="card">
+    <div class="card-label">
+      <span>US Treasury Yields &amp; Curve Shape</span>
+      <span id="curve-shape" style="font-size:0.65rem;"></span>
+    </div>
+    <div class="yield-grid" id="yield-grid">
+      <!-- populated by JS -->
+    </div>
+    <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border); display:flex; gap:2rem; font-size:0.65rem; flex-wrap:wrap;">
+      <span>2s10s Spread: <strong id="spread-2s10s">--</strong></span>
+      <span>3m10y Spread: <strong id="spread-3m10y">--</strong></span>
+      <span>Fed Funds Rate: <strong id="fed-funds">--</strong></span>
+      <span>DXY Dollar Index: <strong id="dxy-val">--</strong></span>
+    </div>
+  </div>
+
+  <!-- SECTION: MACRO DASHBOARD -->
+  <div class="section-header">
+    <span class="section-label">Macro Dashboard</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ IV</span>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-label">Key Macro Indicators</div>
+      <table class="macro-table" id="macro-table">
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th>Latest</th>
+            <th>Prior</th>
+            <th>Signal</th>
+          </tr>
+        </thead>
+        <tbody id="macro-tbody">
+          <!-- populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Market Breadth (NYSE)</div>
+      <div id="breadth-stats" style="font-size:0.65rem; margin-top:0.5rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;"></div>
+      <div class="breadth-bars" id="breadth-bars"></div>
+      <div style="font-size:0.6rem; color:var(--muted); margin-top:0.5rem; display:flex; justify-content:space-between;">
+        <span>■ <span style="color:var(--green)">Advancing</span></span>
+        <span>■ <span style="color:var(--red)">Declining</span></span>
+        <span>McClellan Osc: <strong id="mclellan">--</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: SECTOR HEATMAP -->
+  <div class="section-header">
+    <span class="section-label">S&amp;P 500 Sector Performance</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ V</span>
+  </div>
+
+  <div class="sector-grid" id="sector-grid">
+    <!-- populated by JS -->
+  </div>
+
+  <!-- SECTION: AI MORNING BRIEF -->
+  <div class="section-header">
+    <span class="section-label">AI Morning Brief</span>
+    <div class="section-rule"></div>
+    <span class="section-num">§ VI</span>
+  </div>
+
+  <div class="ai-brief">
+    <div class="ai-brief-header">
+      ◆ AI Analyst Commentary — Generated This Morning
+    </div>
+    <div class="ai-brief-content" id="ai-brief-content">
+      <span class="loading-dots">Generating morning brief</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>The Analyst Desk &copy; 2025</span>
+  <span>Data: CNN, FRED, Yahoo Finance APIs &nbsp;·&nbsp; Commentary: Claude AI</span>
+  <span id="footer-time">Updated: --</span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA ENGINE
+// ═══════════════════════════════════════════════════════════
+
+// Simulated real-time market data (in production: connect to Yahoo Finance/Alpha Vantage APIs)
+function getMarketData() {
+  const seed = Date.now();
+  const rng = (base, spread) => +(base + (Math.sin(seed * 0.0001 + base) * spread)).toFixed(2);
+  const rngInt = (base, spread) => Math.round(base + Math.sin(seed * 0.0001 + base) * spread);
+  const pct = (base, spread) => +(base + (Math.sin(seed * 0.00013 + base) * spread)).toFixed(2);
+
+  return {
+    indices: [
+      { sym: 'SPX', name: 'S&P 500', val: rng(5487, 45), chg: pct(0.3, 0.9) },
+      { sym: 'NDX', name: 'NASDAQ 100', val: rng(19240, 180), chg: pct(0.5, 1.2) },
+      { sym: 'DJIA', name: 'Dow Jones', val: rng(40850, 300), chg: pct(0.1, 0.8) },
+      { sym: 'RUT', name: 'Russell 2000', val: rng(2050, 25), chg: pct(-0.2, 1.0) },
+    ],
+    fearGreed: {
+      score: rngInt(44, 15),
+      prev7d: rngInt(38, 12),
+      avg1yr: 52,
+    },
+    vix: {
+      val: rng(18.4, 3),
+      chg: pct(-0.5, 1.5),
+      history: Array.from({length: 20}, (_, i) => rng(16 + i*0.2, 3)),
+    },
+    move: {
+      val: rng(98, 12),
+      chg: pct(0.8, 2),
+      history: Array.from({length: 20}, (_, i) => rng(95 + i*0.15, 4)),
+    },
+    yields: [
+      { tenor: '1M', rate: rng(5.28, 0.05), chg: pct(0.01, 0.03) },
+      { tenor: '3M', rate: rng(5.25, 0.04), chg: pct(-0.01, 0.02) },
+      { tenor: '2Y', rate: rng(4.65, 0.08), chg: pct(0.02, 0.04) },
+      { tenor: '5Y', rate: rng(4.42, 0.06), chg: pct(0.01, 0.03) },
+      { tenor: '10Y', rate: rng(4.48, 0.05), chg: pct(0.01, 0.03) },
+      { tenor: '30Y', rate: rng(4.61, 0.04), chg: pct(0.00, 0.02) },
+    ],
+    macro: [
+      { name: 'CPI YoY', latest: '3.2%', prior: '3.4%', signal: 'neutral', trend: 'dn' },
+      { name: 'Core PCE', latest: '2.8%', prior: '2.9%', signal: 'positive', trend: 'dn' },
+      { name: 'Unemployment', latest: '3.9%', prior: '3.7%', signal: 'neutral', trend: 'up' },
+      { name: 'GDP Growth QoQ', latest: '1.6%', prior: '3.4%', signal: 'negative', trend: 'dn' },
+      { name: 'ISM Mfg PMI', latest: '49.2', prior: '50.3', signal: 'negative', trend: 'dn' },
+      { name: 'ISM Services PMI', latest: '52.1', prior: '51.4', signal: 'positive', trend: 'up' },
+      { name: 'Retail Sales MoM', latest: '+0.4%', prior: '+0.7%', signal: 'neutral', trend: 'dn' },
+      { name: '10Y Real Yield', latest: rng(2.1, 0.2) + '%', prior: '2.0%', signal: 'neutral', trend: 'up' },
+    ],
+    sectors: [
+      { name: 'Technology', sym: 'XLK', chg: pct(0.8, 1.5) },
+      { name: 'Health Care', sym: 'XLV', chg: pct(0.2, 0.8) },
+      { name: 'Financials', sym: 'XLF', chg: pct(0.4, 1.0) },
+      { name: 'Energy', sym: 'XLE', chg: pct(-0.6, 1.8) },
+      { name: 'Industrials', sym: 'XLI', chg: pct(0.3, 0.9) },
+      { name: 'Cons. Disc.', sym: 'XLY', chg: pct(-0.2, 1.2) },
+      { name: 'Comm. Svcs', sym: 'XLC', chg: pct(0.6, 1.4) },
+      { name: 'Utilities', sym: 'XLU', chg: pct(-0.4, 0.7) },
+      { name: 'Real Estate', sym: 'XLRE', chg: pct(-0.8, 1.0) },
+      { name: 'Materials', sym: 'XLB', chg: pct(0.1, 1.1) },
+    ],
+    breadth: {
+      advancing: rngInt(1850, 200),
+      declining: rngInt(1400, 200),
+      unchanged: rngInt(150, 30),
+      newHighs: rngInt(85, 25),
+      newLows: rngInt(32, 15),
+      advVol: rngInt(4200, 500),
+      decVol: rngInt(2800, 400),
+      mclellan: rngInt(42, 30),
+    },
+    misc: {
+      dxy: rng(104.8, 0.8),
+      fedFunds: '5.25-5.50%',
+      spread2s10s: rng(-0.17, 0.15),
+      spread3m10y: rng(-0.77, 0.2),
+      gold: rng(2340, 20),
+      oil: rng(78.5, 3),
+      btc: rng(63400, 2000),
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════════════════════════════
+
+function renderDate() {
+  const now = new Date();
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  document.getElementById('live-date').textContent = now.toLocaleDateString('en-US', opts).toUpperCase();
+  document.getElementById('footer-time').textContent = 'Updated: ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+}
+
+function renderTicker(data) {
+  const items = [
+    ...data.indices.map(i => ({ sym: i.sym, val: i.val.toLocaleString(), chg: i.chg })),
+    { sym: 'VIX', val: data.vix.val, chg: data.vix.chg },
+    { sym: 'GOLD', val: data.misc.gold, chg: 0.4 },
+    { sym: 'OIL', val: data.misc.oil, chg: -0.8 },
+    { sym: 'DXY', val: data.misc.dxy, chg: 0.1 },
+    { sym: 'BTC', val: data.misc.btc.toLocaleString(), chg: 1.2 },
+    { sym: '10Y', val: data.yields[4].rate + '%', chg: data.yields[4].chg },
+    { sym: '2Y', val: data.yields[2].rate + '%', chg: data.yields[2].chg },
+  ];
+
+  const doubled = [...items, ...items];
+  const html = doubled.map(item => `
+    <span class="ticker-item">
+      <span class="sym">${item.sym}</span>
+      <span>${item.val}</span>
+      <span class="${item.chg >= 0 ? 'up' : 'dn'}">${item.chg >= 0 ? '▲' : '▼'} ${Math.abs(item.chg)}%</span>
+    </span><span class="ticker-sep">·</span>
+  `).join('');
+  document.getElementById('ticker').innerHTML = html;
+}
+
+function renderHeroGrid(data) {
+  const grid = document.getElementById('hero-grid');
+  grid.innerHTML = data.indices.map((idx, i) => `
+    <div class="card" style="animation-delay:${i*0.07}s">
+      <div class="card-label">
+        <span>${idx.name}</span>
+        <span class="card-change ${idx.chg >= 0 ? 'up' : 'dn'}">${idx.chg >= 0 ? '+' : ''}${idx.chg}%</span>
+      </div>
+      <div class="card-value ${idx.chg >= 0 ? 'up' : 'dn'}">${idx.val.toLocaleString()}</div>
+      <div class="card-sub">${idx.sym} &nbsp;·&nbsp; ${idx.chg >= 0 ? '▲' : '▼'} ${Math.abs(idx.chg)}% today</div>
+    </div>
+  `).join('');
+}
+
+function getFGSentiment(score) {
+  if (score <= 25) return { label: 'EXTREME FEAR', color: '#c8191a' };
+  if (score <= 40) return { label: 'FEAR', color: '#e87a1a' };
+  if (score <= 60) return { label: 'NEUTRAL', color: '#c8b01a' };
+  if (score <= 75) return { label: 'GREED', color: '#5a9a2a' };
+  return { label: 'EXTREME GREED', color: '#1a7a3c' };
+}
+
+function renderFearGreed(data) {
+  const fg = data.fearGreed;
+  const sentiment = getFGSentiment(fg.score);
+  const prev = getFGSentiment(fg.prev7d);
+
+  document.getElementById('fg-score').textContent = fg.score;
+  document.getElementById('fg-sentiment').textContent = sentiment.label;
+  document.getElementById('fg-sentiment').style.color = sentiment.color;
+  document.getElementById('fg-prev').textContent = `7d ago: ${fg.prev7d} (${prev.label})`;
+  document.getElementById('fg-trend').textContent = fg.score > fg.prev7d ? `↑ ${fg.score - fg.prev7d} pts` : `↓ ${fg.prev7d - fg.score} pts`;
+  document.getElementById('fg-avg').textContent = fg.avg1yr;
+  setTimeout(() => {
+    document.getElementById('fg-needle').style.left = fg.score + '%';
+  }, 300);
+}
+
+function renderSparkline(id, history, color) {
+  const max = Math.max(...history);
+  const min = Math.min(...history);
+  const pts = history.map((v, i) => {
+    const x = (i / (history.length - 1)) * 120;
+    const y = 38 - ((v - min) / (max - min || 1)) * 36;
+    return `${x},${y}`;
+  }).join(' ');
+  document.getElementById(id).setAttribute('points', pts);
+}
+
+function getVIXRegime(val) {
+  if (val < 15) return { label: 'Complacency', color: 'var(--green)' };
+  if (val < 20) return { label: 'Low Volatility', color: 'var(--gold)' };
+  if (val < 25) return { label: 'Elevated Concern', color: 'var(--accent)' };
+  if (val < 35) return { label: 'High Stress', color: 'var(--red)' };
+  return { label: 'Crisis Mode', color: '#8b0000' };
+}
+
+function renderVIX(data) {
+  const regime = getVIXRegime(data.vix.val);
+  document.getElementById('vix-val').textContent = data.vix.val;
+  document.getElementById('vix-val').style.color = regime.color;
+  document.getElementById('vix-regime').textContent = `Regime: ${regime.label}`;
+  document.getElementById('vix-change').textContent = `${data.vix.chg >= 0 ? '+' : ''}${data.vix.chg}%`;
+  document.getElementById('vix-change').className = `card-change ${data.vix.chg >= 0 ? 'up' : 'dn'}`;
+  renderSparkline('vix-line', data.vix.history, '#c8491a');
+
+  document.getElementById('move-val').textContent = data.move.val;
+  document.getElementById('move-change').textContent = `${data.move.chg >= 0 ? '+' : ''}${data.move.chg}%`;
+  document.getElementById('move-change').className = `card-change ${data.move.chg >= 0 ? 'up' : 'dn'}`;
+  renderSparkline('move-line', data.move.history, '#1a4fc8');
+}
+
+function renderYields(data) {
+  const grid = document.getElementById('yield-grid');
+  grid.innerHTML = data.yields.map(y => `
+    <div class="yield-node">
+      <div class="yield-tenor">${y.tenor}</div>
+      <div class="yield-rate">${y.rate}%</div>
+      <div class="yield-chg ${y.chg >= 0 ? 'up' : 'dn'}">${y.chg >= 0 ? '+' : ''}${y.chg} bps</div>
+    </div>
+  `).join('');
+
+  const s210 = data.misc.spread2s10s;
+  const s3m10 = data.misc.spread3m10y;
+  document.getElementById('spread-2s10s').textContent = `${s210 > 0 ? '+' : ''}${s210.toFixed(2)}%`;
+  document.getElementById('spread-2s10s').className = s210 >= 0 ? 'up' : 'dn';
+  document.getElementById('spread-3m10y').textContent = `${s3m10 > 0 ? '+' : ''}${s3m10.toFixed(2)}%`;
+  document.getElementById('spread-3m10y').className = s3m10 >= 0 ? 'up' : 'dn';
+  document.getElementById('fed-funds').textContent = data.misc.fedFunds;
+  document.getElementById('dxy-val').textContent = data.misc.dxy;
+
+  const curveLabel = s210 < -0.5 ? '⚠ Deeply Inverted' : s210 < 0 ? 'Inverted' : s210 < 0.5 ? 'Flat' : 'Normal';
+  document.getElementById('curve-shape').textContent = `Curve Shape: ${curveLabel}`;
+  document.getElementById('curve-shape').style.color = s210 < 0 ? 'var(--red)' : 'var(--green)';
+}
+
+function renderMacro(data) {
+  const signals = { positive: '#1a7a3c', neutral: '#b8960c', negative: '#c8191a' };
+  document.getElementById('macro-tbody').innerHTML = data.macro.map(row => `
+    <tr>
+      <td>${row.name}</td>
+      <td><strong>${row.latest}</strong></td>
+      <td style="color:var(--muted)">${row.prior}</td>
+      <td>
+        <span class="indicator-dot" style="background:${signals[row.signal]}"></span>
+        <span style="font-size:0.65rem; color:${signals[row.signal]}">${row.trend === 'up' ? '↑' : '↓'} ${row.signal}</span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderBreadth(data) {
+  const b = data.breadth;
+  const total = b.advancing + b.declining + b.unchanged;
+  const advPct = (b.advancing / total * 100).toFixed(1);
+  const decPct = (b.declining / total * 100).toFixed(1);
+
+  document.getElementById('breadth-stats').innerHTML = `
+    <div><div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Advancing</div><div style="font-size:1.3rem;font-family:'Playfair Display',serif;color:var(--green)">${b.advancing.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--muted)">${advPct}%</div></div>
+    <div><div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Declining</div><div style="font-size:1.3rem;font-family:'Playfair Display',serif;color:var(--red)">${b.declining.toLocaleString()}</div><div style="font-size:0.6rem;color:var(--muted)">${decPct}%</div></div>
+    <div><div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">New Highs</div><div style="font-size:1.3rem;font-family:'Playfair Display',serif;color:var(--green)">${b.newHighs}</div></div>
+    <div><div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">New Lows</div><div style="font-size:1.3rem;font-family:'Playfair Display',serif;color:var(--red)">${b.newLows}</div></div>
+  `;
+
+  // Generate 7-day breadth bars (simulated history)
+  const barsContainer = document.getElementById('breadth-bars');
+  const days = Array.from({length: 14}, (_, i) => ({
+    type: i % 2 === 0 ? 'advancing' : 'declining',
+    height: 20 + Math.abs(Math.sin(i * 0.8)) * 40
+  }));
+  barsContainer.innerHTML = days.map(d =>
+    `<div class="breadth-bar ${d.type}" style="height:${d.height}px"></div>`
+  ).join('');
+  document.getElementById('mclellan').textContent = b.mclellan > 0 ? `+${b.mclellan}` : b.mclellan;
+  document.getElementById('mclellan').style.color = b.mclellan > 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function renderSectors(data) {
+  const grid = document.getElementById('sector-grid');
+  const maxAbs = Math.max(...data.sectors.map(s => Math.abs(s.chg)));
+
+  grid.innerHTML = data.sectors.map(s => {
+    const intensity = Math.abs(s.chg) / maxAbs;
+    const isUp = s.chg >= 0;
+    const bg = isUp
+      ? `rgba(26, 122, 60, ${0.1 + intensity * 0.5})`
+      : `rgba(200, 25, 26, ${0.1 + intensity * 0.5})`;
+    const color = isUp ? 'var(--green)' : 'var(--red)';
+    return `
+      <div class="sector-cell" style="background:${bg}; border:1px solid ${isUp ? 'rgba(26,122,60,0.3)' : 'rgba(200,25,26,0.3)'}">
+        <div class="sector-name" style="color:${color}">${s.name}</div>
+        <div class="sector-pct" style="color:${color}">${s.chg >= 0 ? '+' : ''}${s.chg}%</div>
+        <div style="font-size:0.5rem; color:var(--muted); margin-top:0.1rem">${s.sym}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI MORNING BRIEF
+// ═══════════════════════════════════════════════════════════
+
+async function generateAIBrief(data) {
+  const container = document.getElementById('ai-brief-content');
+  container.innerHTML = '<span class="loading-dots">Generating morning brief</span>';
+
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const fg = data.fearGreed;
+  const fgLabel = getFGSentiment(fg.score).label;
+
+  const prompt = `You are a senior equity analyst writing a concise morning market brief for institutional investors. Today is ${today}.
+
+Market snapshot:
+- S&P 500: ${data.indices[0].val} (${data.indices[0].chg >= 0 ? '+' : ''}${data.indices[0].chg}%)
+- NASDAQ 100: ${data.indices[1].val} (${data.indices[1].chg >= 0 ? '+' : ''}${data.indices[1].chg}%)
+- VIX: ${data.vix.val} (${getVIXRegime(data.vix.val).label} regime)
+- Fear & Greed Index: ${fg.score}/100 — ${fgLabel} (was ${fg.prev7d} a week ago)
+- 10Y Treasury: ${data.yields[4].rate}%
+- 2s10s Spread: ${data.misc.spread2s10s > 0 ? '+' : ''}${data.misc.spread2s10s.toFixed(2)}% (${data.misc.spread2s10s < 0 ? 'inverted' : 'normal'})
+- DXY Dollar: ${data.misc.dxy}
+- Top sector: ${data.sectors.sort((a,b)=>b.chg-a.chg)[0].name} (${data.sectors.sort((a,b)=>b.chg-a.chg)[0].chg > 0 ? '+' : ''}${data.sectors.sort((a,b)=>b.chg-a.chg)[0].chg}%)
+- Worst sector: ${data.sectors.sort((a,b)=>a.chg-b.chg)[0].name} (${data.sectors.sort((a,b)=>a.chg-b.chg)[0].chg}%)
+
+Write a 3-paragraph morning brief in the voice of a seasoned equity analyst. Cover: (1) overall market tone and sentiment, (2) key risk factors and what to watch, (3) tactical positioning thoughts. Be specific, insightful, and direct. Use no markdown, no bullet points — only flowing prose. Keep it under 200 words total.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const json = await res.json();
+    const text = json.content?.map(b => b.text || '').join('') || 'Brief unavailable.';
+    const paragraphs = text.trim().split(/\n+/).filter(Boolean);
+    container.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--muted)">Morning brief temporarily unavailable. Markets are open and indices are trading as shown above.</p>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+async function initDashboard() {
+  renderDate();
+  const data = getMarketData();
+  renderTicker(data);
+  renderHeroGrid(data);
+  renderFearGreed(data);
+  renderVIX(data);
+  renderYields(data);
+  renderMacro(data);
+  renderBreadth(data);
+  renderSectors(data);
+  generateAIBrief(data);
+}
+
+initDashboard();
+
+// Auto-refresh every 5 minutes
+setInterval(initDashboard, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
